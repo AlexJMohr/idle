@@ -11,7 +11,7 @@
 	} from '$lib/game.svelte';
 
 	const pointsPerSecond = $derived(
-		BUILDINGS.reduce((sum, b) => sum + ownedState.current[b.name] * b.baseRate, 0)
+		BUILDINGS.reduce((sum, b) => sum + (ownedState.current[b.name] ?? 0) * b.baseRate, 0)
 	);
 
 	const fmtCompact = new Intl.NumberFormat('en', { notation: 'compact', maximumFractionDigits: 1 });
@@ -77,7 +77,7 @@
 				</div>
 				<div class="ml-3 shrink-0 text-right">
 					<div class="font-semibold">{fmt(cost)}</div>
-					<div class="text-gray-400">owned: {ownedState.current[building.name]}</div>
+					<div class="text-gray-400">owned: {ownedState.current[building.name] ?? 0}</div>
 				</div>
 			</button>
 		{/each}
