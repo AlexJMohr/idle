@@ -17,7 +17,7 @@ Restart=always
 ExecStartPre=-/usr/bin/podman stop idlegame
 ExecStartPre=-/usr/bin/podman rm idlegame
 ExecStart=/usr/bin/podman run --rm --name idlegame \
-  -p 127.0.0.1:3000:3000 \
+  --network=host \
   localhost/idlegame:latest
 ExecStop=/usr/bin/podman stop idlegame
 
