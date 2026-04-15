@@ -96,9 +96,9 @@
 	});
 </script>
 
-<div class="flex h-screen font-mono text-sm">
+<div class="flex h-screen flex-col font-mono text-sm sm:flex-row">
 	<!-- Left: clicker -->
-	<div class="flex flex-1 flex-col items-center justify-center gap-4 border-r border-gray-200">
+	<div class="flex shrink-0 flex-col items-center justify-center gap-4 border-b border-gray-200 py-6 sm:flex-1 sm:border-b-0 sm:border-r sm:py-0">
 		<PointsDisplay points={pointsState.current} {pointsPerSecond} />
 
 		<ClickButton onclick={click} />
@@ -119,7 +119,7 @@
 	</div>
 
 	<!-- Right: shop -->
-	<div class="flex w-72 flex-col overflow-hidden">
+	<div class="flex min-h-0 flex-1 flex-col overflow-hidden sm:w-72 sm:flex-none">
 		<!-- Tabs -->
 		<div class="flex shrink-0 border-b border-gray-200">
 			<button
