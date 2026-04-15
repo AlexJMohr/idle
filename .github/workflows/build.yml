@@ -1,40 +1,21 @@
-name: Build and Push Docker Image
+name: Build and Deploy
 
 on:
   push:
     branches: [main]
 
-env:
-  REGISTRY: ghcr.io
-  IMAGE_NAME: ${{ github.repository }}
-
 jobs:
-  build-and-push:
+  build-and-deploy:
     runs-on: self-hosted
     permissions:
       contents: read
-      packages: write
 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Log in to GHCR
-        run: echo "${{ secrets.GITHUB_TOKEN }}" | podman login ghcr.io -u ${{ github.actor }} --password-stdin
-
       - name: Build
-        run: |
-          podman build \
-            -t ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest \
-            -t ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:sha-${{ github.sha }} \
-            .
-
-      - name: Push
-        run: |
-          podman push ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
-          podman push ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:sha-${{ github.sha }}
+        run: podman build -t localhost/idlegame:latest .
 
       - name: Deploy
-        run: |
-          podman pull ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
-          systemctl restart idlegame
+        run: systemctl restart idlegame
