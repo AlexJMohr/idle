@@ -1,19 +1,83 @@
 import { PersistedState } from 'runed';
 
 export const BUILDINGS = [
-	{ name: 'Worker', desc: 'Generates a trickle of points.', baseCost: 10n, baseRate: 0.1 },
-	{ name: 'Workshop', desc: 'A small automated workshop.', baseCost: 100n, baseRate: 1 },
-	{ name: 'Factory', desc: 'Industrial-scale production.', baseCost: 1_100n, baseRate: 10 },
-	{ name: 'Datacenter', desc: 'Processes points at scale.', baseCost: 12_000n, baseRate: 50 },
-	{ name: 'Megaplex', desc: 'A city-sized point generator.', baseCost: 130_000n, baseRate: 100 },
-	{ name: 'Colony', desc: 'An entire self-sustaining colony.', baseCost: 1_500_000n, baseRate: 500 },
-	{ name: 'Arcology', desc: 'A closed-loop megastructure city.', baseCost: 20_000_000n, baseRate: 2_500 },
-	{ name: 'Orbital', desc: 'A ring station in low orbit.', baseCost: 300_000_000n, baseRate: 12_000 },
-	{ name: 'Dyson Sphere', desc: 'Harnesses an entire star.', baseCost: 5_000_000_000n, baseRate: 60_000 },
-	{ name: 'Singularity', desc: 'A post-physical point engine.', baseCost: 80_000_000_000n, baseRate: 300_000 }
+	{ name: 'Tier 0', desc: 'The simplest possible unit.', baseCost: 10n, baseRate: 0.1 },
+	{ name: 'Tier 1', desc: 'Slightly less simple.', baseCost: 100n, baseRate: 1 },
+	{ name: 'Tier 2', desc: 'Something is definitely happening.', baseCost: 1_100n, baseRate: 10 },
+	{ name: 'Tier 3', desc: 'Efficiency improves noticeably.', baseCost: 12_000n, baseRate: 50 },
+	{ name: 'Tier 4', desc: 'A meaningful leap in output.', baseCost: 130_000n, baseRate: 250 },
+	{
+		name: 'Tier 5',
+		desc: 'Production at considerable scale.',
+		baseCost: 1_500_000n,
+		baseRate: 1500
+	},
+	{
+		name: 'Tier 6',
+		desc: 'The numbers are getting abstract.',
+		baseCost: 18_000_000n,
+		baseRate: 7_500
+	},
+	{
+		name: 'Tier 7',
+		desc: 'You have lost track of the units.',
+		baseCost: 220_000_000n,
+		baseRate: 50_000
+	},
+	{
+		name: 'Tier 8',
+		desc: 'Physics is more of a suggestion now.',
+		baseCost: 2_700_000_000n,
+		baseRate: 250_000
+	},
+	{
+		name: 'Tier 9',
+		desc: 'Even the concept of points is tired.',
+		baseCost: 34_000_000_000n,
+		baseRate: 1_500_000
+	}
 ] as const;
 
 export type BuildingName = (typeof BUILDINGS)[number]['name'];
+
+export const UPGRADES = BUILDINGS.flatMap((b) => [
+	{
+		id: `${b.name}-1`,
+		building: b.name as BuildingName,
+		desc: `Double ${b.name} output.`,
+		cost: b.baseCost * 10n,
+		multiplier: 2,
+		requires: 100
+	},
+	{
+		id: `${b.name}-2`,
+		building: b.name as BuildingName,
+		desc: `Double ${b.name} output again.`,
+		cost: b.baseCost * 100n,
+		multiplier: 2,
+		requires: 250
+	}
+]);
+
+export type Upgrade = (typeof UPGRADES)[number];
+
+export const CLICK_UPGRADES = [
+	{
+		id: 'click-1',
+		name: 'Click Frenzy',
+		desc: 'Click rapidly to boost production. Max ×2.',
+		cost: 100n
+	},
+	{ id: 'click-2', name: 'Frenzy II', desc: 'Increase max frenzy to ×3.', cost: 500n },
+	{ id: 'click-3', name: 'Frenzy III', desc: 'Increase max frenzy to ×4.', cost: 2_500n },
+	{ id: 'click-4', name: 'Frenzy IV', desc: 'Increase max frenzy to ×5.', cost: 12_500n },
+	{ id: 'click-5', name: 'Frenzy V', desc: 'Increase max frenzy to ×6.', cost: 62_500n },
+	{ id: 'click-6', name: 'Frenzy VI', desc: 'Increase max frenzy to ×7.', cost: 312_500n },
+	{ id: 'click-7', name: 'Frenzy VII', desc: 'Increase max frenzy to ×8.', cost: 1_562_500n },
+	{ id: 'click-8', name: 'Frenzy VIII', desc: 'Increase max frenzy to ×9.', cost: 7_812_500n },
+	{ id: 'click-9', name: 'Frenzy IX', desc: 'Increase max frenzy to ×10.', cost: 39_062_500n },
+	{ id: 'click-10', name: 'Frenzy X', desc: 'Increase max frenzy to ×11.', cost: 195_312_500n }
+] as const;
 
 const bigintSerializer = {
 	serialize: (v: bigint) => v.toString(),
@@ -29,7 +93,53 @@ export const ownedState = new PersistedState(
 	Object.fromEntries(BUILDINGS.map((b) => [b.name, 0])) as Record<BuildingName, number>
 );
 
+export const purchasedState = new PersistedState<Record<string, boolean>>('idlegame-purchased', {});
+export const revealedState = new PersistedState<Record<string, boolean>>('idlegame-revealed', {});
+
 let accumulator = 0;
+
+// Tunable frenzy parameters (all independent)
+const FRENZY_HEAT_GAIN = 0.05; // heat added per click; 1/FRENZY_HEAT_GAIN clicks to fill
+const FRENZY_DECAY_HALFLIFE = 0.5; // seconds for heat to halve when not clicking
+const FRENZY_GRACE_PERIOD = 0.15; // seconds after last click before decay starts
+
+const HEAT_DECAY = Math.LN2 / FRENZY_DECAY_HALFLIFE;
+
+let timeSinceClick = Infinity;
+
+export const clickHeatState = $state({ current: 0 }); // 0–1
+
+export function frenzyMultiplier(): number {
+	const levels = CLICK_UPGRADES.filter((u) => purchasedState.current[u.id]).length;
+	return 1 + levels * clickHeatState.current;
+}
+
+export function reset() {
+	pointsState.current = 0n;
+	ownedState.current = Object.fromEntries(BUILDINGS.map((b) => [b.name, 0])) as Record<
+		BuildingName,
+		number
+	>;
+	purchasedState.current = {};
+	revealedState.current = {};
+	accumulator = 0;
+	clickHeatState.current = 0;
+	timeSinceClick = Infinity;
+}
+
+export function multiplierFor(name: BuildingName): number {
+	return UPGRADES.filter((u) => u.building === name).reduce(
+		(m, u) => (purchasedState.current[u.id] ? m * u.multiplier : m),
+		1
+	);
+}
+
+export function buyUpgrade(id: string, cost: bigint) {
+	if (!purchasedState.current[id] && pointsState.current >= cost) {
+		pointsState.current -= cost;
+		purchasedState.current = { ...purchasedState.current, [id]: true };
+	}
+}
 
 export function costOf(name: BuildingName): bigint {
 	const b = BUILDINGS.find((b) => b.name === name)!;
@@ -37,6 +147,8 @@ export function costOf(name: BuildingName): bigint {
 }
 
 export function click() {
+	clickHeatState.current = Math.min(1, clickHeatState.current + FRENZY_HEAT_GAIN);
+	timeSinceClick = 0;
 	pointsState.current += 1n;
 }
 
@@ -49,8 +161,15 @@ export function buy(name: BuildingName) {
 }
 
 export function tick(elapsed: number) {
-	const pps = BUILDINGS.reduce((sum, b) => sum + (ownedState.current[b.name] ?? 0) * b.baseRate, 0);
-	accumulator += pps * elapsed;
+	timeSinceClick += elapsed;
+	if (timeSinceClick > FRENZY_GRACE_PERIOD) {
+		clickHeatState.current = Math.max(0, clickHeatState.current * Math.exp(-HEAT_DECAY * elapsed));
+	}
+	const pps = BUILDINGS.reduce(
+		(sum, b) => sum + (ownedState.current[b.name] ?? 0) * b.baseRate * multiplierFor(b.name),
+		0
+	);
+	accumulator += pps * frenzyMultiplier() * elapsed;
 	if (accumulator >= 1) {
 		const whole = Math.floor(accumulator);
 		pointsState.current += BigInt(whole);
