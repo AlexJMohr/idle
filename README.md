@@ -1,22 +1,6 @@
-# sv
+# idle
 
-Everything you need to build a Svelte project, powered by [`sv`](https://github.com/sveltejs/cli).
-
-## Creating a project
-
-If you're seeing this, you've probably already done this step. Congrats!
-
-```sh
-# create a new project
-npx sv create my-app
-```
-
-To recreate this project with the same configuration:
-
-```sh
-# recreate this project
-npx sv@0.15.1 create --template minimal --types ts --add prettier eslint tailwindcss="plugins:none" mcp="ide:claude-code+setup:remote" --install npm idlegame
-```
+An idle clicker game inspired by Cookie Clicker, written in Svelte.
 
 ## Developing
 
@@ -38,5 +22,3 @@ npm run build
 ```
 
 You can preview the production build with `npm run preview`.
-
-> To deploy your app, you may need to install an [adapter](https://svelte.dev/docs/kit/adapters) for your target environment.
