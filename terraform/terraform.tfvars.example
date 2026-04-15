@@ -1,0 +1,23 @@
+proxmox_host      = "192.168.1.123"
+proxmox_node      = "pve"
+proxmox_api_token = "root@pam!tokenid=xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
+
+# Download with: pveam download local ubuntu-24.04-standard_24.04-2_amd64.tar.zst
+ubuntu_template_file_id = "local:vztmpl/ubuntu-24.04-standard_24.04-2_amd64.tar.zst"
+
+container_cores     = 2
+container_memory    = 1024
+container_disk_size = 10
+
+# ssh_public_key_path = "~/.ssh/id_ed25519.pub"  # default, uncomment to override
+
+# GitHub username and PAT with read:packages scope
+ghcr_user  = "YourGitHubUsername"
+ghcr_token = "ghp_..."
+
+docker_image = "ghcr.io/yourgithubusername/idlegame:latest"
+
+# Cloudflare API token needs: Account > Cloudflare Tunnel > Edit, Zone > DNS > Edit
+cloudflare_api_token  = "your-cloudflare-api-token"
+cloudflare_account_id = "your-cloudflare-account-id"
+cloudflare_zone_id    = "zone-id-for-your-domain"

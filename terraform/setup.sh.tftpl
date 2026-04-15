@@ -1,0 +1,40 @@
+#!/bin/bash
+set -euo pipefail
+
+# Install Docker
+apt-get update -qq
+apt-get install -y -qq ca-certificates curl
+curl -fsSL https://get.docker.com | sh
+systemctl enable --now docker
+
+# Systemd unit for the game container
+cat > /etc/systemd/system/idlegame.service << 'EOF'
+[Unit]
+Description=idlegame
+After=docker.service
+Requires=docker.service
+
+[Service]
+Restart=always
+ExecStartPre=-/usr/bin/docker stop idlegame
+ExecStartPre=-/usr/bin/docker rm idlegame
+ExecStart=/usr/bin/docker run --rm --name idlegame \
+  -p 127.0.0.1:3000:3000 \
+  ${docker_image}
+ExecStop=/usr/bin/docker stop idlegame
+
+[Install]
+WantedBy=multi-user.target
+EOF
+
+echo "${ghcr_token}" | docker login ghcr.io -u "${ghcr_user}" --password-stdin
+docker pull ${docker_image}
+systemctl daemon-reload
+systemctl enable --now idlegame
+
+# Install cloudflared and register tunnel
+curl -fsSL -o /tmp/cloudflared.deb \
+  https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-amd64.deb
+dpkg -i /tmp/cloudflared.deb
+cloudflared service install ${tunnel_token}
+systemctl enable --now cloudflared

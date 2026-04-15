@@ -24,3 +24,11 @@ vite.config.ts.timestamp-*
 
 # Claude
 .claude/settings.local.json
+
+# Terraform
+terraform/terraform.tfvars
+terraform/.setup-rendered.sh
+terraform/.terraform/
+terraform/.terraform.lock.hcl
+terraform/terraform.tfstate
+terraform/terraform.tfstate.backup
