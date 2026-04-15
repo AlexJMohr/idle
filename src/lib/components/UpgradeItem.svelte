@@ -33,7 +33,7 @@
 >
 	<div class="min-w-0">
 		<div class="font-semibold">{name}</div>
-		<div class="truncate text-gray-400">{desc}</div>
+		<div class="text-xs text-gray-400">{desc}</div>
 		{#if !purchased && !unlocked && requiresHint}
 			<div class="text-gray-300">{requiresHint}</div>
 		{/if}

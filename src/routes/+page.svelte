@@ -52,6 +52,18 @@
 		return nextIdx === -1 ? [...CLICK_UPGRADES] : CLICK_UPGRADES.slice(0, nextIdx + 1);
 	});
 
+	const visibleBuildingUpgrades = $derived.by(() => {
+		const revealedNames = new Set(visibleBuildings.map((b) => b.name));
+		return UPGRADES.filter((u) => {
+			if (!revealedNames.has(u.building)) return false;
+			if (purchasedState.current[u.id]) return true;
+			const first = UPGRADES.find(
+				(bu) => bu.building === u.building && !purchasedState.current[bu.id]
+			);
+			return first?.id === u.id;
+		});
+	});
+
 	const visibleBuildings = $derived.by(() => {
 		const result: (typeof BUILDINGS)[number][] = [];
 		for (let i = 0; i < BUILDINGS.length; i++) {
@@ -185,7 +197,7 @@
 				>
 					Buildings
 				</div>
-				{#each UPGRADES as u (u.id)}
+				{#each visibleBuildingUpgrades as u (u.id)}
 					<UpgradeItem
 						name={u.building}
 						desc={u.desc}
@@ -194,7 +206,7 @@
 						canAfford={pointsState.current >= u.cost}
 						unlocked={(ownedState.current[u.building] ?? 0) >= u.requires}
 						showMultiplier={true}
-						requiresHint="need {u.requires} owned"
+						requiresHint="{ownedState.current[u.building] ?? 0}/{u.requires} owned"
 						onbuy={() => buyUpgrade(u.id, u.cost)}
 					/>
 				{/each}

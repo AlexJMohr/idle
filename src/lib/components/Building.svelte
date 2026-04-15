@@ -21,7 +21,7 @@
 >
 	<div class="min-w-0">
 		<div class="font-semibold">{name}</div>
-		<div class="truncate text-gray-400">{desc}</div>
+		<div class="text-xs text-gray-400">{desc}</div>
 		<div class="text-gray-300">+{effectiveRate}/sec each</div>
 	</div>
 	<div class="ml-3 shrink-0 text-right">

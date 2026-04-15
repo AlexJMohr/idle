@@ -40,24 +40,29 @@ export const BUILDINGS = [
 
 export type BuildingName = (typeof BUILDINGS)[number]['name'];
 
-export const UPGRADES = BUILDINGS.flatMap((b) => [
-	{
-		id: `${b.name}-1`,
+const UPGRADE_TIERS = [
+	{ requires: 10, costFactor: 20n },
+	{ requires: 25, costFactor: 100n },
+	{ requires: 50, costFactor: 500n },
+	{ requires: 100, costFactor: 2_000n },
+	{ requires: 150, costFactor: 8_000n },
+	{ requires: 200, costFactor: 30_000n },
+	{ requires: 300, costFactor: 120_000n },
+	{ requires: 400, costFactor: 500_000n },
+	{ requires: 500, costFactor: 2_000_000n },
+	{ requires: 750, costFactor: 10_000_000n }
+];
+
+export const UPGRADES = BUILDINGS.flatMap((b) =>
+	UPGRADE_TIERS.map((tier, i) => ({
+		id: `${b.name}-${i + 1}`,
 		building: b.name as BuildingName,
 		desc: `Double ${b.name} output.`,
-		cost: b.baseCost * 10n,
+		cost: b.baseCost * tier.costFactor,
 		multiplier: 2,
-		requires: 100
-	},
-	{
-		id: `${b.name}-2`,
-		building: b.name as BuildingName,
-		desc: `Double ${b.name} output again.`,
-		cost: b.baseCost * 100n,
-		multiplier: 2,
-		requires: 250
-	}
-]);
+		requires: tier.requires
+	}))
+);
 
 export type Upgrade = (typeof UPGRADES)[number];
 
